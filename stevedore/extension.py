@@ -132,15 +132,43 @@ class ExtensionManager(object):
             self._invoke_one_plugin(response.append, func, e, args, kwds)
         return response
 
-    def _invoke_one_plugin(self, response_callback, func, e, args, kwds):
+    def map_propagate_exceptions(self, func, *args, **kwds):
+        """Iterate over the extensions invoking func() for each.
+
+        The signature for func() should be::
+
+            def func(ext, *args, **kwds):
+                pass
+
+        The first argument to func(), 'ext', is the
+        :class:`~stevedore.extension.Extension` instance.
+
+        Exceptions raised from within func() are propagated up and
+        processing stops.
+
+        :param func: Callable to invoke for each extension.
+        :param args: Variable arguments to pass to func()
+        :param kwds: Keyword arguments to pass to func()
+        :returns: List of values returned from func()
+        """
+        if not self.extensions:
+            # FIXME: Use a more specific exception class here.
+            raise RuntimeError('No %s extensions found' % self.namespace)
+        response = []
+        for e in self.extensions:
+            self._invoke_one_plugin(response.append, func, e, args, kwds, True)
+        return response
+
+    def _invoke_one_plugin(self, response_callback, func, e, args, kwds,
+                           ignore_exceptions=True):
         try:
             response_callback(func(e, *args, **kwds))
         except Exception as err:
-            # FIXME: Provide an argument to control
-            # whether to ignore exceptions in each
-            # plugin or stop processing.
-            LOG.error('error calling %r: %s', e.name, err)
-            LOG.exception(err)
+            if ignore_exceptions:
+                LOG.error('error calling %r: %s', e.name, err)
+                LOG.exception(err)
+            else:
+                raise
 
     def __iter__(self):
         """Produce iterator for the manager.
