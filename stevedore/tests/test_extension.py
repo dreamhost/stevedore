@@ -15,10 +15,16 @@ class FauxExtension(object):
         return self.args, self.kwds, data
 
 
+class FailExtension(object):
+    """An extension that always fails to be instantiated."""
+    def __init__(self, *args, **kwds):
+        raise Exception("Oh noes!")
+
+
 def test_detect_plugins():
     em = extension.ExtensionManager('stevedore.test.extension')
     names = sorted(em.names())
-    assert names == ['t1', 't2']
+    assert names == ['t1', 't2', 't3']
 
 
 def test_get_by_name():
@@ -30,7 +36,7 @@ def test_get_by_name():
 def test_get_by_name_missing():
     em = extension.ExtensionManager('stevedore.test.extension')
     try:
-        em['t3']
+        em['t4']
     except KeyError:
         pass
     else:
@@ -73,7 +79,7 @@ def test_use_cache():
 def test_iterable():
     em = extension.ExtensionManager('stevedore.test.extension')
     names = sorted(e.name for e in em)
-    assert names == ['t1', 't2']
+    assert names == ['t1', 't2', 't3']
 
 
 def test_invoke_on_load():

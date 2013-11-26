@@ -40,7 +40,8 @@ class NamedExtensionManager(ExtensionManager):
             propagate_map_exceptions=propagate_map_exceptions)
         extensions = self._load_plugins(invoke_on_load,
                                         invoke_args,
-                                        invoke_kwds)
+                                        invoke_kwds,
+                                        names)
         self._init_plugins(extensions)
 
     @classmethod

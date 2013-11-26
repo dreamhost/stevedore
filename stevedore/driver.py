@@ -57,7 +57,21 @@ class DriverManager(NamedExtensionManager):
             propagate_map_exceptions=propagate_map_exceptions)
         return o
 
-    def _init_plugins(self, extensions, propagate_map_exceptions=False):
+    def _load_plugins(self, invoke_on_load, invoke_args, invoke_kwds,
+                      names=None):
+        try:
+            return super(DriverManager, self)._load_plugins(
+                invoke_on_load,
+                invoke_args,
+                invoke_kwds,
+                names,
+                catch_exception=False)
+        except Exception as err:
+            raise RuntimeError(
+                'Unable to load driver %s from %s: %s' %
+                (names[0], self.namespace, err))
+
+    def _init_plugins(self, extensions):
         super(DriverManager, self)._init_plugins(extensions)
 
         if not self.extensions:

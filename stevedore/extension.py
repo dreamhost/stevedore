@@ -65,6 +65,8 @@ class ExtensionManager(object):
         are propagated up through the map call or whether they are logged and
         then ignored
     :type propagate_map_exceptions: bool
+    :param names: List of plugins names to load, None to load all, [] for none.
+    :type names: iterable
 
     """
 
@@ -72,12 +74,14 @@ class ExtensionManager(object):
                  invoke_on_load=False,
                  invoke_args=(),
                  invoke_kwds={},
-                 propagate_map_exceptions=False):
+                 propagate_map_exceptions=False,
+                 names=None):
         self._init_attributes(
             namespace, propagate_map_exceptions=propagate_map_exceptions)
         extensions = self._load_plugins(invoke_on_load,
                                         invoke_args,
-                                        invoke_kwds)
+                                        invoke_kwds,
+                                        names)
         self._init_plugins(extensions)
 
     @classmethod
@@ -123,9 +127,22 @@ class ExtensionManager(object):
             self.ENTRY_POINT_CACHE[namespace] = eps
         return self.ENTRY_POINT_CACHE[namespace]
 
-    def _load_plugins(self, invoke_on_load, invoke_args, invoke_kwds):
+    def _load_plugins(self, invoke_on_load, invoke_args, invoke_kwds,
+                      names=None, catch_exception=True):
+        """Load plugins.
+
+        :param invoke_on_load: Invoke plugin upon loading.
+        :param invoke_args: Arguments to pass to the plugin if invoked.
+        :param invoke_kwds: Keyword arguments to pass to the plugin if invoked.
+        :param names: List of plugins names to load,
+                      None to load all, [] for none.
+        :param catch_exception: Whether to catch extension loading exception
+                                and log them, or re-raise them.
+        """
         extensions = []
         for ep in self._find_entry_points(self.namespace):
+            if names is not None and ep.name not in names:
+                continue
             LOG.debug('found extension %r', ep)
             try:
                 ext = self._load_one_plugin(ep,
@@ -138,8 +155,11 @@ class ExtensionManager(object):
             except (KeyboardInterrupt, AssertionError):
                 raise
             except Exception as err:
-                LOG.error('Could not load %r: %s', ep.name, err)
-                LOG.exception(err)
+                if catch_exception:
+                    LOG.error('Could not load %r: %s', ep.name, err)
+                    LOG.exception(err)
+                else:
+                    raise
         return extensions
 
     def _load_one_plugin(self, ep, invoke_on_load, invoke_args, invoke_kwds):
