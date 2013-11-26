@@ -59,3 +59,15 @@ def test_multiple_drivers():
         except RuntimeError as err:
             assert "Multiple" in str(err), str(err)
         fep.assert_called_with('stevedore.test.multiple_drivers')
+
+
+def test_driver_fails_to_load():
+    try:
+        driver.DriverManager(
+            'stevedore.test.extension',
+            't3',
+            invoke_on_load=True)
+    except RuntimeError as err:
+        assert "Unable to load driver t3 from stevedore.test.extension: Oh noes!" == str(err)
+    else:
+        raise RuntimeError("No error raised!")

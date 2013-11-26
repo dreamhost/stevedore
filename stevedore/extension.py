@@ -128,7 +128,7 @@ class ExtensionManager(object):
         return self.ENTRY_POINT_CACHE[namespace]
 
     def _load_plugins(self, invoke_on_load, invoke_args, invoke_kwds,
-                      names=None):
+                      names=None, catch_exception=True):
         """Load plugins.
 
         :param invoke_on_load: Invoke plugin upon loading.
@@ -136,6 +136,8 @@ class ExtensionManager(object):
         :param invoke_kwds: Keyword arguments to pass to the plugin if invoked.
         :param names: List of plugins names to load,
                       None to load all, [] for none.
+        :param catch_exception: Whether to catch extension loading exception
+                                and log them, or re-raise them.
         """
         extensions = []
         for ep in self._find_entry_points(self.namespace):
@@ -153,8 +155,11 @@ class ExtensionManager(object):
             except (KeyboardInterrupt, AssertionError):
                 raise
             except Exception as err:
-                LOG.error('Could not load %r: %s', ep.name, err)
-                LOG.exception(err)
+                if catch_exception:
+                    LOG.error('Could not load %r: %s', ep.name, err)
+                    LOG.exception(err)
+                else:
+                    raise
         return extensions
 
     def _load_one_plugin(self, ep, invoke_on_load, invoke_args, invoke_kwds):
