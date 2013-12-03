@@ -4,6 +4,7 @@
 import pkg_resources
 
 import logging
+import operator
 
 
 LOG = logging.getLogger(__name__)
@@ -140,6 +141,7 @@ class ExtensionManager(object):
             except Exception as err:
                 LOG.error('Could not load %r: %s', ep.name, err)
                 LOG.exception(err)
+        extensions.sort(key=operator.attrgetter('name'))
         return extensions
 
     def _load_one_plugin(self, ep, invoke_on_load, invoke_args, invoke_kwds):

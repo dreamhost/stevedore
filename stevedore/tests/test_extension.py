@@ -167,3 +167,24 @@ def test_map_method():
 
     result = em.map_method('get_args_and_data', 42)
     assert set(r[2] for r in result) == set([42])
+
+
+def test_ordered_extensions():
+    em = extension.ExtensionManager("stevedore.test.extension.ordering")
+    fake_entry_points = mock.MagicMock()
+
+    names = ['zoo', 'blah', 'foo']
+    fake_entry_points.side_effect = names
+    plugins = [mock.MagicMock() for x in names]
+    for name, plugin in zip(names, plugins):
+        plugin.name = name
+
+    fake_plugins = mock.MagicMock()
+    fake_plugins.side_effect = plugins
+
+    with mock.patch.object(em, '_find_entry_points', fake_entry_points):
+        with mock.patch.object(em, '_load_one_plugin', fake_plugins):
+            ext = em._load_plugins(None, None, None)
+            names.sort()
+            ex_names = [e.name for e in ext]
+            assert names == ex_names
