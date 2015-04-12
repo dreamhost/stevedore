@@ -1,6 +1,9 @@
 stevedore
 =========
 
-Manage dynamic plugins for Python applications
+Stevedore is now part of the OpenStack Oslo program and is managed through OpenStack's infrastructure system:
 
-See http://stevedore.readthedocs.org for the full documentation.
+Git: http://git.openstack.org/cgit/openstack/stevedore/
+Documentation: http://docs.openstack.org/developer/stevedore/
+Bug tracker: https://launchpad.net/python-stevedore
+Contributing: http://git.openstack.org/cgit/openstack/stevedore/tree/CONTRIBUTING.rst
